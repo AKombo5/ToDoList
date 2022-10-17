@@ -9,33 +9,63 @@ import SwiftUI
 
 struct DetailView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    var passedValue: String
+    @EnvironmentObject var toDosVM: ToDosViewModel
+    @State var toDo: ToDo
+    var newToDo = false
     
     var body: some View {
-        VStack {
-            Image(systemName: "swift")
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(.orange)
+        List {
+            TextField("Enter To Do here", text: $toDo.item)
+                .font(.title)
+                .textFieldStyle(.roundedBorder)
+                .padding(.vertical)
+                .listRowSeparator(.hidden)
             
-            Text("You Are a Swifty Legend!\nAnd you passed over the value \(passedValue)")
-                .font(.largeTitle)
-                .multilineTextAlignment(.center)
-
-            Spacer()
+            Toggle("Set Reminder:", isOn: $toDo.reminderIsOn)
+                .padding(.top)
+                .listRowSeparator(.hidden)
             
-            Button("Get Back!") {
-                dismiss()
-            }
-            .buttonStyle(.borderedProminent)
+            DatePicker("Date", selection: $toDo.dueDate)
+                .listRowSeparator(.hidden)
+                .padding(.bottom)
+                .disabled(!toDo.reminderIsOn)
+            
+            Text("Notes:")
+                .padding(.top)
+            
+            TextField("Notes", text: $toDo.notes, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .listRowSeparator(.hidden)
+            
+            Toggle("Completed:", isOn: $toDo.isCompleted)
+                .padding(.top)
+                .listRowSeparator(.hidden)
         }
-        .padding()
+        .listStyle(.plain)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    toDosVM.saveToDo(toDo: toDo, newToDo: newToDo)
+                    dismiss()
+                }
+            }
+        }
+        .navigationBarBackButtonHidden()
+        .navigationBarTitleDisplayMode(.inline)
+        
     }
 }
 
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(passedValue: "Item 1")
+        NavigationStack {
+            DetailView(toDo: ToDo())
+                .environmentObject(ToDosViewModel())
+        }
     }
 }
